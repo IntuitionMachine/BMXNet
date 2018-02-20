@@ -197,7 +197,8 @@ def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, bn_mom=
     BITW = bits_w
     BITA = bits_a
 
-    logging.info("Created binary densenet with bit_w={} and bit_a={} and bottleneck={}.".format(BITW, BITA, use_bottle_neck))
+    logging.info("Created binary densenet with bit_w={}, bit_a={}, bottleneck={}, reduction={}.".format(
+        BITW, BITA, use_bottle_neck, reduction))
 
     if data_type == "imagenet":
         if num_layers == 21:

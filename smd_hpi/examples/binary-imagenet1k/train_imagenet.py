@@ -12,6 +12,10 @@ def add_binary_args(parser):
                        help='number of bits for weights')
     parser.add_argument('--bits-a', type=int, default=1,
                        help='number of bits for activations')
+    parser.add_argument('--reduction', type=float, default=0.5,
+                       help='reduction in transition blocks (densenet only)')
+    parser.add_argument('--growth-rate', type=int, default=32,
+                       help='number of initial filters (densenet only)')
 
 
 if __name__ == '__main__':
