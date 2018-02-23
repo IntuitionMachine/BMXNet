@@ -77,6 +77,7 @@ if __name__ == '__main__':
     from importlib import import_module
     net = import_module('symbols.'+args.network)
     sym = net.get_symbol(**vars(args))
+    # mx.visualization.print_summary(sym, shape={'data': (1, 3, 224, 224)})
 
     #load pretrained
     args_params=None
