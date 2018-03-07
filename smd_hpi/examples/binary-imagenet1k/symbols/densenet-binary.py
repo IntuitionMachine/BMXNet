@@ -183,11 +183,10 @@ def DenseNet(units, num_stage, growth_rate, num_class, data_type, reduction=0.5,
     bn1 = mx.sym.BatchNorm(data=body, fix_gamma=False, eps=2e-5, momentum=bn_mom, name='bn1')
     relu1 = mx.sym.Activation(data=bn1, act_type='relu', name='relu1')
     pool1 = mx.symbol.Pooling(data=relu1, global_pool=True, kernel=(7, 7), pool_type='avg', name='pool1')
+    # reshaped = mx.symbol.Reshape(data=relu1, shape=(0, -1, 14, 14))
+    # pool1 = mx.symbol.Pooling(data=reshaped, kernel=(14, 14), pool_type='avg', name='pool1')
     flat = mx.symbol.Flatten(data=pool1)
     fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=num_class, name='fc1')
-    # mx.visualization.print_summary(fc1, shape={'data':(512,3,224,224)})
-    # digraph = mx.visualization.plot_network(ret, save_format='jpg')
-    # digraph.render()
     return mx.symbol.SoftmaxOutput(data=fc1, name='softmax')
 
 
@@ -205,6 +204,8 @@ def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, bn_mom=
             units = [2, 2, 2, 2]
         elif num_layers == 45:
             units = [2, 4, 8, 6]
+        elif num_layers == 71:
+            units = [3, 4, 23, 3]
         elif num_layers == 85:
             units = [4, 8, 16, 12]
         elif num_layers == 121:
