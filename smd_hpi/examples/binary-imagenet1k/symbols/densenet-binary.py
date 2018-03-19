@@ -19,6 +19,8 @@ logging.basicConfig(level=logging.DEBUG)
 BITW = -1 # set in get_symbol
 BITA = -1 # set in get_symbol
 
+from insights.visual_backprop import build_visual_backprop_symbol
+
 
 def BasicBlock(data, growth_rate, stride, name, bottle_neck=True, drop_out=0.0, bn_mom=0.9, workspace=512):
     """Return BaiscBlock Unit symbol for building DenseBlock
@@ -182,12 +184,13 @@ def DenseNet(units, num_stage, growth_rate, num_class, data_type, reduction=0.5,
                       bottle_neck=bottle_neck, drop_out=drop_out, bn_mom=bn_mom, workspace=workspace)
     bn1 = mx.sym.BatchNorm(data=body, fix_gamma=False, eps=2e-5, momentum=bn_mom, name='bn1')
     relu1 = mx.sym.Activation(data=bn1, act_type='relu', name='relu1')
+    vis = build_visual_backprop_symbol(relu1)
     pool1 = mx.symbol.Pooling(data=relu1, global_pool=True, kernel=(7, 7), pool_type='avg', name='pool1')
     # reshaped = mx.symbol.Reshape(data=relu1, shape=(0, -1, 14, 14))
     # pool1 = mx.symbol.Pooling(data=reshaped, kernel=(14, 14), pool_type='avg', name='pool1')
     flat = mx.symbol.Flatten(data=pool1)
     fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=num_class, name='fc1')
-    return mx.symbol.SoftmaxOutput(data=fc1, name='softmax')
+    return mx.symbol.SoftmaxOutput(data=fc1, name='softmax'), vis
 
 
 def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, bn_mom=0.9, drop_out=0.0, reduction=0.5,

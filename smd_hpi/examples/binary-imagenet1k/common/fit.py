@@ -3,6 +3,8 @@ import logging
 import os
 import time
 
+from insights.iter_visualisation import VisualBackpropPlotter
+
 def _get_lr_scheduler(args, kv):
     if 'lr_factor' not in args or args.lr_factor >= 1:
         return (args.lr, None)
@@ -115,6 +117,15 @@ def fit(args, network, data_loader, **kwargs):
 
         return
 
+    visual_back_prop = False
+    if isinstance(network, tuple):
+        visual_back_prop = True
+        next(val)
+        first_batch = next(val)
+        (train, val) = data_loader(args, kv)
+        network, vis = network
+        group = mx.symbol.Group([network, vis])
+        plotter = VisualBackpropPlotter(upstream_ip=args.ip, upstream_port=args.port)
 
     # load model
     if 'arg_params' in kwargs and 'aux_params' in kwargs:
@@ -171,9 +182,15 @@ def fit(args, network, data_loader, **kwargs):
 
     # callbacks that run after each batch
     batch_end_callbacks = [mx.callback.Speedometer(args.batch_size, args.disp_batches)]
+    if visual_back_prop:
+        batch_end_callbacks.append(
+            plotter.get_callback(group, first_batch.data[0][0].asnumpy(), first_batch.label[0][0].asnumpy(), devs, model)
+        )
+
     if 'batch_end_callback' in kwargs:
         cbs = kwargs['batch_end_callback']
         batch_end_callbacks += cbs if isinstance(cbs, list) else [cbs]
+
 
     # run
     model.fit(train,

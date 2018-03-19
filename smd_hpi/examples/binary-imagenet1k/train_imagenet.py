@@ -6,6 +6,7 @@ from common import find_mxnet, data, fit
 from common.util import download_file
 import mxnet as mx
 
+from insights.iter_visualisation import VisualBackpropPlotter
 
 def add_binary_args(parser):
     parser.add_argument('--bits-w', type=int, default=1,
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     data.add_data_args(parser)
     data.add_data_aug_args(parser)
     # use a large aug level
-    data.set_data_aug_level(parser, 3)
+    data.set_data_aug_level(parser, 0)
 
     parser.add_argument('--pretrained', type=str,
                     help='the pre-trained model')
@@ -37,6 +38,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--visualize', action='store_true',
                     help='visualize network instead of train it')
+
+    parser.add_argument('--ip', default='127.0.0.1', help='upstream ip that can recieve bboxes [default: 127.0.0.1]')
+    parser.add_argument('--port', default=1337, type=int, help='remote port to connect to [default: 1337]')
 
     add_binary_args(parser)
 
