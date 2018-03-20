@@ -78,7 +78,7 @@ def build_visual_backprop_symbol(start_symbol, input_name=None, data_shape=(1, 3
     computational_graph = json.loads(start_symbol.tojson())
     nodes = computational_graph['nodes']
 
-    assert nodes[-1]['op'] == 'Activation', 'Visual Backprop needs an activation node as starting point!'
+    assert 'Activation' in nodes[-1]['op'], 'Visual Backprop needs an activation node as starting point!'
 
     intermediate_symbols = start_symbol.get_internals()
 
