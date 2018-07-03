@@ -3,6 +3,15 @@ import logging
 import os
 import time
 from math import sqrt
+from mxboard import SummaryWriter
+
+def _make_debug_callback(summary_writer):
+    def debug_callback(epoch, symbol, arg_params, aux_params):
+        summary_writer.add_scalar(tag='train_acc', value=1.0, global_step=epoch)
+        for name in arg_params:
+            summary_writer.add_histogram(tag=name, values=arg_params[name], global_step=epoch, bins=100)
+
+    return debug_callback
 
 def _get_lr_scheduler(args, kv):
     if 'lr_factor' not in args or args.lr_factor >= 1:
@@ -88,6 +97,10 @@ def add_fit_args(parser):
     return train
 
 def fit(args, network, data_loader, **kwargs):
+    with SummaryWriter(logdir="./meta/tblogs", flush_secs=5) as sw:
+        fit_summary_writer(sw, args, network, data_loader, **kwargs)
+
+def fit_summary_writer(sw, args, network, data_loader, **kwargs):
     """
     train a model
     args : argparse returns
@@ -101,6 +114,8 @@ def fit(args, network, data_loader, **kwargs):
     head = '%(asctime)-15s Node[' + str(kv.rank) + '] %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
     logging.info('start with arguments %s', args)
+
+    sw.add_graph(network)
 
     # data iterators
     (train, val) = data_loader(args, kv)
@@ -133,7 +148,10 @@ def fit(args, network, data_loader, **kwargs):
         logging.info("Freezed parameters: [" + ','.join(fixed_param_names) + ']')
 
     # save model
-    checkpoint = _save_model(args, kv.rank)
+    checkpoint = [
+        _save_model(args, kv.rank),
+        _make_debug_callback(sw),
+    ]
 
     # devices for training
     devs = mx.cpu() if args.gpus is None or args.gpus is '' else [
