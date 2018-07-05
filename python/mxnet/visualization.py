@@ -27,6 +27,8 @@ import re
 import copy
 import json
 
+from functools import reduce
+
 from .symbol import Symbol
 
 def _str2tuple(string):
@@ -43,6 +45,11 @@ def _str2tuple(string):
         Represents shape.
     """
     return re.findall(r"\d+", string)
+
+def _calc_number_of_weights(name, shape):
+    if name.endswith("_weight") or name.endswith("_bias") or name.endswith("_moving_mean") or name.endswith("_moving_var"):
+        return reduce(lambda x, y: x*y, shape)
+    return 0
 
 def print_summary(symbol, shape=None, line_length=120, positions=[.44, .64, .74, 1.]):
     """Convert symbol for detail information.
@@ -187,6 +194,7 @@ def print_summary(symbol, shape=None, line_length=120, positions=[.44, .64, .74,
         else:
             print('_' * line_length)
     print('Total params: %s' % total_params)
+    print('Weights: %s' % sum(_calc_number_of_weights(k,v) for k,v in shape_dict.items()))
     print('_' * line_length)
 
 def plot_network(symbol, title="plot", save_format='pdf', shape=None, node_attrs={},
